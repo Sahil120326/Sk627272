@@ -1,3 +1,4 @@
+
 import { getModelData, setModelData } from './dbService';
 
 interface Model {
@@ -6,6 +7,7 @@ interface Model {
 }
 
 let model: Model | null = null;
+let vocabulary: string[] | null = null;
 
 const fetchModel = async (): Promise<Model> => {
   const response = await fetch('/model.json');
@@ -30,6 +32,7 @@ export const initializeModel = async (): Promise<void> => {
       console.log("Model loaded from cache.");
     }
     model = modelData;
+    vocabulary = Object.keys(model.bigramModel);
   } catch (error) {
     console.error('Failed to initialize model:', error);
     throw error;
@@ -57,31 +60,42 @@ const getSuggestionsFromModel = (
 };
 
 export const getOfflinePredictions = (text: string): string[] => {
-  if (!model || text.trim() === '' || !text.endsWith(' ')) {
+  if (!model || !vocabulary) {
     return [];
   }
 
-  const words = text.trim().toLowerCase().split(/\s+/);
-  
-  if (words.length === 0) {
-    return [];
-  }
-
+  const trimmedText = text.trim();
+  const endsWithSpace = text.endsWith(' ');
   const limit = 5;
+  
+  if (trimmedText === '' && !endsWithSpace) {
+      return [];
+  }
 
-  if (words.length >= 2) {
-    const key = `${words[words.length - 2]} ${words[words.length - 1]}`;
-    const suggestions = getSuggestionsFromModel(model.trigramModel, key, limit);
-    if (suggestions.length > 0) {
-      return suggestions;
+  const words = trimmedText.toLowerCase().split(/\s+/);
+  
+  // Case 1: Next-word prediction (after a space)
+  if (endsWithSpace) {
+    if (words.length === 0) return [];
+    
+    if (words.length >= 2) {
+      const key = `${words[words.length - 2]} ${words[words.length - 1]}`;
+      const suggestions = getSuggestionsFromModel(model.trigramModel, key, limit);
+      if (suggestions.length > 0) {
+        return suggestions;
+      }
     }
-  }
 
-  if (words.length >= 1) {
     const key = words[words.length - 1];
-    const suggestions = getSuggestionsFromModel(model.bigramModel, key, limit);
-    return suggestions;
-  }
+    return getSuggestionsFromModel(model.bigramModel, key, limit);
+  } 
+  // Case 2: Word completion (while typing)
+  else {
+    const currentWordFragment = words[words.length - 1];
+    if (!currentWordFragment) return [];
 
-  return [];
+    return vocabulary
+      .filter(word => word.startsWith(currentWordFragment) && word !== currentWordFragment)
+      .slice(0, limit);
+  }
 };
