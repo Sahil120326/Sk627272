@@ -4,26 +4,16 @@ import React from 'react';
 interface SuggestionProps {
   text: string;
   onClick: () => void;
-  isAi?: boolean;
 }
 
-const Suggestion: React.FC<SuggestionProps> = ({ text, onClick, isAi = false }) => {
-  const baseClasses = "flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 whitespace-nowrap flex items-center space-x-2";
-  
-  const themeClasses = isAi 
-    ? "bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 focus:ring-purple-500"
-    : "bg-slate-700 text-slate-300 hover:bg-slate-600 focus:ring-cyan-500";
+const Suggestion: React.FC<SuggestionProps> = ({ text, onClick }) => {
+  const classes = "flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 whitespace-nowrap bg-slate-700 text-slate-300 hover:bg-slate-600 focus:ring-cyan-500";
 
   return (
     <button
       onClick={onClick}
-      className={`${baseClasses} ${themeClasses}`}
+      className={classes}
     >
-      {isAi && (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M10 2a.75.75 0 01.75.75V4h1.25a.75.75 0 010 1.5H10.75V7h.5a.75.75 0 010 1.5h-.5v1.25a.75.75 0 01-1.5 0V8.5h-.5a.75.75 0 010-1.5h.5V5.5H8.75a.75.75 0 010-1.5H10V2.75A.75.75 0 0110 2zM3.5 6.5a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zM14.25 6.5a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5h-1.5zM6.5 14.25a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0v-1.5zM13.5 14.25a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75z" clipRule="evenodd" />
-        </svg>
-      )}
       <span>{text}</span>
     </button>
   );
