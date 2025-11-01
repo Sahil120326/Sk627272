@@ -1,5 +1,5 @@
 {
-  "name": "Next Word Prediction Model",
-  "description": "An intelligent text editor that provides real-time word suggestions, auto-completion, and corrections, similar to Google Keyboard, powered by the Gemini API. Type in the text area to receive contextual predictions.",
+  "name": "Offline Next Word Prediction",
+  "description": "An intelligent, offline-first text editor that provides real-time word suggestions using a local prediction model. Experience instant, private, and network-independent writing assistance.",
   "requestFramePermissions": []
 }
