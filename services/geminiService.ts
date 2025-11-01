@@ -1,10 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { PredictionResponse } from '../types';
 
-const systemInstruction = `You are an intelligent text editor assistant. Your task is to analyze a given text, correct the last word if it's misspelled, and provide a list of 3 to 5 likely next words or short phrases to continue the sentence.
+const systemInstruction = `You are an intelligent text editor assistant. Your task is to analyze a given text and provide helpful suggestions.
+- Correct the last word if it's misspelled.
+- Provide a list of 3 to 5 likely next words or short phrases.
+- Provide one longer, contextually relevant sentence completion suggestion.
+- Provide 2-3 relevant emojis based on the text's sentiment and context.
 - Provide your response in JSON format according to the specified schema.
-- If there is no spelling correction for the last word, the 'correction' field in the JSON response should be null.
-- The suggestions should be contextually relevant to the provided text.`;
+- If a field is not applicable (e.g., no correction needed, no suitable sentence completion), its value should be null or an empty array.`;
 
 export const getPredictions = async (text: string): Promise<PredictionResponse | null> => {
   if (!text.trim()) {
@@ -25,8 +28,19 @@ export const getPredictions = async (text: string): Promise<PredictionResponse |
           type: Type.STRING,
         },
       },
+      sentenceCompletion: {
+        type: Type.STRING,
+        description: 'A longer, contextually relevant suggestion to complete the current sentence. Null if not applicable.',
+      },
+      emojis: {
+        type: Type.ARRAY,
+        description: 'An array of 2-3 relevant emojis.',
+        items: {
+            type: Type.STRING
+        }
+      }
     },
-    required: ['correction', 'suggestions'],
+    required: ['correction', 'suggestions', 'sentenceCompletion', 'emojis'],
   };
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -45,7 +59,12 @@ export const getPredictions = async (text: string): Promise<PredictionResponse |
 
     const jsonString = response.text.trim();
     if (jsonString) {
-      return JSON.parse(jsonString) as PredictionResponse;
+      const parsed = JSON.parse(jsonString) as PredictionResponse;
+      // Ensure emojis is an array even if model returns null
+      if (!parsed.emojis) {
+        parsed.emojis = [];
+      }
+      return parsed;
     }
     return null;
   } catch (error) {
